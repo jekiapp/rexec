@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -28,45 +26,47 @@ var (
 	colorCounter int
 )
 
-type tconfig struct {
-	Name    string   `json:"name"`
-	Servers []string `json:"server_addresses"`
-	File    string   `json:"file"`
-	Options []string `json:"options"`
-}
-
 var (
-	configFile = flag.String("config.file", "", "")
-
-	configs []tconfig
+	host = flag.String("h", "", "comma separated host")
+	edit = flag.Bool("e", false, "edit config")
 )
 
 func Main() int {
 
-	if configFile := *configFile; configFile != "" {
-		b, err := ioutil.ReadFile(configFile)
-		if err != nil {
-			println(err.Error())
-			return 1
-		}
-		err = json.Unmarshal(b, &configs)
-		if err != nil {
-			println(err.Error())
-		}
-		return MainConfig()
-	}
-
 	if len(os.Args) < 2 {
-		fmt.Println("usage: rtail [<servers>] [-F | -f | -r] [-q] [-b # | -c # | -n #] <file>")
+		fmt.Println("usage: rmt [-h <hosts>|-e] <command>")
 		return 0
 	}
-	servers := os.Args[1]
+
+	var err error
+	var hosts []string
+	if *host != "" {
+		hosts = strings.Split(*host, ",")
+	}
+	args := flag.Args()
+
+	if *edit {
+		err := editConfig()
+		if err != nil {
+			fmt.Println(errColor(err.Error()))
+		}
+	}
+
+	if len(hosts) == 0 {
+		hosts, err = readHostConfig()
+		if err != nil {
+			fmt.Println(errColor(err.Error()))
+		}
+	}
+
+	if len(args) == 0 {
+		return 0
+	}
 
 	var grCount int
 	errChan := make(chan error)
-
-	for _, server := range strings.Split(servers, ",") {
-		go run("", server, flag.Args()[1:], errChan)
+	for _, host := range hosts {
+		go run(host, args, errChan)
 		grCount++
 	}
 	for grCount != 0 {
@@ -80,42 +80,21 @@ func Main() int {
 	return 0
 }
 
-func MainConfig() int {
-	var grCount int
-	errChan := make(chan error)
-	for _, cfg := range configs {
-		for _, server := range cfg.Servers {
-			go run(cfg.Name, server, append(cfg.Options, cfg.File), errChan)
-			grCount++
-		}
-
-	}
-	for grCount != 0 {
-		err := <-errChan
-		if err != nil {
-			println(err.Error())
-		}
-		grCount--
-	}
-
-	return 0
-}
-
-func run(name, server string, command []string, err chan error) {
-	cmds := []string{"ssh", server, "tail", strings.Join(command, " ")}
+func run(server string, command []string, err chan error) {
+	cmds := []string{"ssh", server, strings.Join(command, " ")}
 	fmt.Println("Executing : ", cmds)
 
 	cmd := exec.Command(cmds[0], cmds[1:]...)
 
-	cmd.Stdout = newWriter(randColor(fmt.Sprintf("[%s:%s] ", name, server)))
-	cmd.Stderr = newWriter(errColor(fmt.Sprintf("[%s:%s] ERR : ", name, server)))
+	cmd.Stdout = newWriter(randColor(fmt.Sprintf("[%s] ", server)))
+	cmd.Stderr = newWriter(errColor(fmt.Sprintf("[%s] ERR : ", server)))
 
 	if errno := cmd.Run(); errno != nil {
-		err <- fmt.Errorf("[%s:%s] %s", name, server, errno.Error())
+		err <- fmt.Errorf("[%s] %s", server, errno.Error())
 		return
 	}
 
-	err <- fmt.Errorf("[%s:%s] %s", name, server, "session closed")
+	err <- fmt.Errorf("[%s] %s", server, "session closed")
 }
 
 func randColor(s string) string {
@@ -127,12 +106,6 @@ func randColor(s string) string {
 }
 func errColor(s string) string {
 	return color.RedString(s)
-}
-
-func must(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
 
 type writer struct {

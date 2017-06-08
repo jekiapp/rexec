@@ -1,47 +1,29 @@
-# Remote Tail
-Simple go package to tail log remotely.
+# Remote Exec
+Simple go package to exec command remotely.
 
 ### Getting Started
 ```bash
-go get -u github.com/alileza/rtail
+go get -u github.com/ahmadmuzakki29/rexec
 ```
 
+### Usage
 ```bash
-usage: rtail [<servers>] [-F | -f | -r] [-q] [-b # | -c # | -n #] <file>
+rexec [-h <hosts>|-e] <command>
+
+# example of executing ls command remotely
 
 # single server
-rtail root@192.168.100.160 -f /var/log/nginx/access.log
+rexec -h root@192.168.100.160 ls
 
 # multiple server
-rtail root@192.168.100.160,root@192.168.100.161,root@192.168.100.162 -f /var/log/nginx/access.log
+rexec -h root@192.168.100.160,root@192.168.100.161 ls
+
+# using file config
+rexec ls
+
+# edit file config
+rexec -e ls
 ```
 
-# Use Config File
-```sh
-rtail -config.file=example.json
-```
-
-**Config Example**
-```json
-[
-    {
-        "name" : "nginx",
-        "server_addresses" : [
-            "root@192.168.100.160",
-            "root@192.168.100.161",
-            "root@192.168.100.162"
-        ],
-        "options" : ["-f", "-n 1"],
-        "file" : "/var/log/nginx/access.log"
-    },
-    {
-        "name" : "apps",
-        "server_addresses" : [
-            "root@192.168.100.170",
-            "root@192.168.100.171"
-        ],
-        "options" : ["-f", "-n 1"],
-        "file" : "/var/log/apps/apps.log"
-    }
-]
-```
+### Thanks
+- https://github.com/alileza/rtail
