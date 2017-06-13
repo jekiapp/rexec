@@ -34,7 +34,7 @@ var (
 func Main() int {
 
 	if len(os.Args) < 2 {
-		fmt.Println("usage: rmt [-h <hosts>|-e] <command>")
+		fmt.Println("usage: rexec [-h <hosts>|-e] <command>")
 		return 0
 	}
 
