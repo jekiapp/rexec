@@ -27,14 +27,15 @@ var (
 )
 
 var (
-	host = flag.String("h", "", "comma separated host")
-	edit = flag.Bool("e", false, "edit config")
+	host  = flag.String("h", "", "comma separated host")
+	edit  = flag.Bool("e", false, "edit config")
+	group = flag.String("g", "", "specify group to run")
 )
 
 func Main() int {
 
 	if len(os.Args) < 2 {
-		fmt.Println("usage: rexec [-h <hosts>|-e] <command>")
+		fmt.Println("usage: rexec [-e | -h <hosts>|-g <group>] <command>")
 		return 0
 	}
 
@@ -50,10 +51,11 @@ func Main() int {
 		if err != nil {
 			fmt.Println(errColor(err.Error()))
 		}
+		return 0
 	}
 
 	if len(hosts) == 0 {
-		hosts, err = readHostConfig()
+		hosts, err = readHostConfig(*group)
 		if err != nil {
 			fmt.Println(errColor(err.Error()))
 		}
