@@ -1,14 +1,14 @@
 # Remote Exec
-Simple go package to exec command remotely.
+Simple program to exec command remotely.
 
-### Getting Started
+### Download
 ```bash
-go get -u github.com/ahmadmuzakki29/rexec
+wget https://github.com/ahmadmuzakki/rexec/raw/master/rexec
 ```
 
 ### Usage
 ```bash
-rexec [-h <hosts>|-e] <command>
+rexec [-e | -h <hosts>|-g <group>] <command>
 
 # example of executing command remotely
 
@@ -25,5 +25,21 @@ rexec grep 500 /var/log/nginx/access.log
 rexec -e
 ```
 
+### Config
+Put host config to be line separated. example:
+```
+ root@192.168.0.123
+ root@192.168.0.124
+```
+or you can group it. example:
+```
+ [server1]
+ root@192.168.0.1
+ root@192.168.0.2
+
+ [other-server]
+ root@192.168.0.3
+ root@192.168.0.4
+```
 ### Thanks
 - https://github.com/alileza/rtail
