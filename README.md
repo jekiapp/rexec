@@ -1,5 +1,5 @@
 # Remote Exec
-Simple program to exec command remotely.
+Simple program to exec command remotely in multiple server using ssh.
 
 ### Download
 ```bash
