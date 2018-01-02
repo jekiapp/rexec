@@ -39,6 +39,7 @@ func TestParseConfig(t *testing.T) {
 				raw := `
 					[my-server1]
 					root@123.124
+					#something
 					root@123.123
 				`
 				return raw, "my-server1"
@@ -74,12 +75,10 @@ func TestParseConfig(t *testing.T) {
 					[server1]
 					root@123.124
 					root@123.123
-					
-					root@160.200
 				`
-				return raw, "server1"
+				return raw, "server2"
 			},
-			err: fmt.Errorf("Found config with group mode. but root@160.200 doesn't have group"),
+			err: fmt.Errorf("Group 'server2' not found"),
 		},
 	}
 
