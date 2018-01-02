@@ -69,16 +69,6 @@ func TestParseConfig(t *testing.T) {
 				return raw, ""
 			},
 			err: fmt.Errorf("Config use group mode but no group specified"),
-		}, {
-			mock: func() (string, string) {
-				raw := `
-					[server1]
-					root@123.124
-					root@123.123
-				`
-				return raw, "server2"
-			},
-			err: fmt.Errorf("Group 'server2' not found"),
 		},
 	}
 

@@ -48,6 +48,9 @@ func readHostConfig(group string) ([]string, error) {
 	defer f.Close()
 
 	hosts, err = parseConfig(readFile(f), group)
+	if err != nil {
+		return hosts, err
+	}
 	if len(hosts) == 0 {
 		f.Close()
 		editConfig()
