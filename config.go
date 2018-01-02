@@ -54,6 +54,9 @@ func readHostConfig(group string) ([]string, error) {
 		f, _ := getConfigPath("hosts")
 		hosts, err = parseConfig(readFile(f), group)
 		f.Close()
+		if err != nil {
+			return hosts, err
+		}
 		if len(hosts) == 0 {
 			return hosts, errors.New("Servers config can't be empty")
 		}
@@ -101,18 +104,11 @@ func parseConfig(rawConfig, groupConfig string) ([]string, error) {
 	var hosts []string
 	var groups = make(map[string][]string)
 
-	var groupMode bool
 	var currentGroup string
 	lines := strings.Split(rawConfig, "\n")
+	lines = trimLines(lines)
 	for _, l := range lines {
-		l = strings.TrimSpace(l)
-
-		if strings.HasPrefix(l, "#") || l == "" {
-			currentGroup = ""
-			continue
-		}
 		if bt := groupRegex.Find([]byte(l)); len(bt) > 0 {
-			groupMode = true
 			group := groupRegex.ReplaceAllString(l, "$1") // remove [ and ]
 			currentGroup = group
 			continue
@@ -123,9 +119,6 @@ func parseConfig(rawConfig, groupConfig string) ([]string, error) {
 			continue
 		}
 
-		if groupMode {
-			return nil, fmt.Errorf("Found config with group mode. but %s doesn't have group", l)
-		}
 		hosts = append(hosts, l)
 	}
 	if groupConfig != "" {
@@ -157,4 +150,16 @@ func getConfigPath(file string) (*os.File, error) {
 	}
 
 	return f, err
+}
+
+func trimLines(lines []string) []string {
+	newlines := []string{}
+	for _, l := range lines {
+		l = strings.TrimSpace(l)
+		if l == "" || strings.HasPrefix(l, "#") {
+			continue
+		}
+		newlines = append(newlines, l)
+	}
+	return newlines
 }
